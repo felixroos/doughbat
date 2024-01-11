@@ -19,7 +19,7 @@ The `dsp` function will be called 44100 times per second! Example:
 Example:
 
 ```ts
-export function dsp(t: f32): f32 {
+export function dsp(t: f64): f64 {
   return ((110 * t * 1.0) % 1.0) - 0.5;
 }
 ```
@@ -39,7 +39,7 @@ To understand more about making music with maths, read my blog post series:
 - <https://loophole-letters.netlify.app/buffers/>
 - <https://loophole-letters.netlify.app/dsp-lvl1/>
 - <https://loophole-letters.netlify.app/dsp-lvl2/>
-- <http://localhost:3501/assemblyscript-dsp//>
+- <https://loophole-letters.netlify.app/assemblyscript-dsp/>
 
 ## Credits
 
