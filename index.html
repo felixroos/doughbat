@@ -47,7 +47,7 @@
           "index.ts": code,
           ...(files || {}),
         };
-        const { error } = await asc.main(
+        const { error, stderr } = await asc.main(
           ["--outFile", "binary", "--textFile", "text", "index.ts"],
           {
             stdout: output.stdout,
@@ -59,8 +59,8 @@
           }
         );
         if (error) {
-          console.error(error);
-          throw new Error(error.message);
+          const message = `${error.message}: ${output.stderr.toString()}`;
+          throw new Error(message);
         }
         return output;
       }
@@ -146,11 +146,15 @@ Read https://github.com/felixroos/doughbat to find out more!
           worklet.connect(ac.destination);
         }
         await ac.resume();
-        const output = await compileAssemblyScript(code);
-        worklet.port.postMessage({ webassembly: output.binary });
-        window.location.hash = "#" + btoa(code);
-        stopButton.style.display = "block";
-        playButton.style.display = "none";
+        try {
+          const output = await compileAssemblyScript(code);
+          worklet.port.postMessage({ webassembly: output.binary });
+          window.location.hash = "#" + btoa(code);
+          stopButton.style.display = "block";
+          playButton.style.display = "none";
+        } catch (err) {
+          console.error(err.message);
+        }
       };
 
       // ui
