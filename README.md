@@ -28,6 +28,10 @@ This is a simple sawtooth wave... The returned numbers will rise from -0.5 to 0.
 This is just a very basic example.
 You can actually write full music pieces with this abstraction.
 
+## Examples
+
+- [potasmic - go to sleep (froos doughbat remix)](https://felixroos.github.io/doughbat/#LyohCiAqCiAqIHBvdGFzbWljIC0gZ28gdG8gc2xlZXAKICoKICovCgpleHBvcnQgZnVuY3Rpb24gZHNwKHQ6IGY2NCk6IGY2NCB7CiAgbGV0IHMgPSAwLjA7CiAgbGV0IGZlZWRiYWNrID0gMC40OwogIGxldCBwID0gWzAuNzM3LDAuNDE1LDAuMzIyLDAuMTddOwogIGZvcihsZXQgaT0wLjA7IGk8TWF0aGYuUEk7aSs9TWF0aGYuUEkvNykgCiAgewogICBsZXQgX3QgPSB0IDwgTWF0aC5QST8gdCA6IHQtaTsKICAgbGV0IG4gPSA8aTMyPk1hdGgucm91bmQoX3QvTWF0aC5QSS8yKSVwLmxlbmd0aDsKICAgcys9IDAuMyAqIE1hdGguc2luKDIqTWF0aC5QSSpfdCooNDQwKzQ0MCooKGkvMC43NSklNCkpKnBbbl0pIAogICAgICAgKiBNYXRoLmV4cCgwLjAxLV90JU1hdGguUEkvNCo0KSAqIChmZWVkYmFjay0oaS80KSpmZWVkYmFjayk7CiAgfQogIHJldHVybiBzOwp9Cg==)
+
 ## Read More
 
 To understand more about making music with maths, read my blog post series:
