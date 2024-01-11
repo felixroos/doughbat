@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html style="height: 100vh">
+  <body style="margin: 0; padding: 0; height: 100%; width: 100%; display: flex">
+    <textarea
+      id="code"
+      spellcheck="false"
+      style="
+        width: 100%;
+        font-size: 24px;
+        color: white;
+        background: darkslategray;
+        border: 0;
+        outline: none;
+        padding: 10px;
+      "
+    ></textarea>
+    <button
+      style="position: fixed; right: 0; bottom: 0; font-size: 30px"
+      id="playButton"
+    >
+      play
+    </button>
+    <button
+      style="
+        display: none;
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        font-size: 30px;
+      "
+      id="stopButton"
+    >
+      stop
+    </button>
+    <script src="https://cdn.jsdelivr.net/npm/assemblyscript@0.27.9/dist/web.js"></script>
+    <script type="module">
+      import asc from "assemblyscript/asc";
+      export async function compileAssemblyScript(
+        code, //: string
+        files //: { [name: string]: string }
+      ) {
+        const output = Object.create({
+          stdout: asc.createMemoryStream(),
+          stderr: asc.createMemoryStream(),
+        });
+        const sources = {
+          "index.ts": code,
+          ...(files || {}),
+        };
+        const { error } = await asc.main(
+          ["--outFile", "binary", "--textFile", "text", "index.ts"],
+          {
+            stdout: output.stdout,
+            stderr: output.stderr,
+            readFile: (name) =>
+              sources.hasOwnProperty(name) ? sources[name] : null,
+            writeFile: (name, contents) => (output[name] = contents),
+            listFiles: () => [],
+          }
+        );
+        if (error) {
+          console.error(error);
+          throw new Error(error.message);
+        }
+        return output;
+      }
+      const workletCode = `class DSPProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.t = 0; // samples passed
+    this.port.onmessage = (e) => {
+      const key = Object.keys(e.data)[0];
+      const value = e.data[key];
+      switch (key) {
+        case "webassembly":
+          WebAssembly.instantiate(value, {
+            environment: { SAMPLERATE: globalThis.sampleRate },
+            env: {
+              abort: () =>
+                console.log("webassembly synth abort, should not happen"),
+            },
+          }).then((result) => {
+            this.api = result.instance.exports;
+            this.port.postMessage("OK");
+          });
+          break;
+      }
+    };
+  }
+
+  process(inputs, outputs, parameters) {
+    if (this.api) {
+      const output = outputs[0];
+      for (let i = 0; i < output[0].length; i++) {
+        let out = this.api.dsp(this.t / globalThis.sampleRate);
+        output.forEach((channel) => {
+          channel[i] = out;
+        });
+        this.t++;
+      }
+    }
+    return true;
+  }
+}
+registerProcessor("dsp-processor", DSPProcessor);`;
+
+      // audio init
+      console.log(
+        `Welcome to doughbat, a very minimal bytebeat livecoding editor..
+  
+Click into the page and press ctrl+enter to evaluate the code!
+  
+Read https://github.com/felixroos/doughbat to find out more!
+  `
+      );
+      let ac;
+      document.addEventListener("click", function initAudio() {
+        ac = new AudioContext();
+        ac.resume();
+        document.removeEventListener("click", initAudio);
+      });
+
+      // control
+      let worklet,
+        hz = 44100;
+      const stop = async () => {
+        worklet?.disconnect();
+        worklet = null;
+        stopButton.style.display = "none";
+        playButton.style.display = "block";
+      };
+
+      const update = async (code) => {
+        ac = ac || new AudioContext();
+        if (!worklet) {
+          const dataURL = `data:text/javascript;base64,${btoa(workletCode)}`;
+          await ac.audioWorklet.addModule(dataURL);
+          worklet = new AudioWorkletNode(ac, "dsp-processor");
+          worklet.connect(ac.destination);
+          // worklet.connect(analyser());
+          worklet.port.onmessage = (e) => {
+            if (e.data === "OK") {
+              console.log("worklet ready");
+            }
+          };
+          worklet.connect(ac.destination);
+        }
+        await ac.resume();
+        const output = await compileAssemblyScript(code);
+        worklet.port.postMessage({ webassembly: output.binary });
+        window.location.hash = "#" + btoa(code);
+        stopButton.style.display = "block";
+        playButton.style.display = "none";
+      };
+
+      // ui
+      const input = document.getElementById("code");
+      const playButton = document.getElementById("playButton");
+      const stopButton = document.getElementById("stopButton");
+      let urlCode = window.location.hash.slice(1);
+      if (urlCode) {
+        urlCode = atob(urlCode);
+        console.log("loaded code from url!");
+      }
+      const initialCode =
+        urlCode ||
+        `function saw(f: f32, t: f32): f32 {
+  return (((f * t * 1.0) % 1.0) - 0.5) * 1.0;
+}
+export function dsp(t: f32): f32 {
+  return (saw(110, t) + saw(111, t))/4
+}`;
+      input.value = initialCode;
+
+      input.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "Enter") {
+          update(input.value);
+        } else if (e.ctrlKey && e.key === ".") {
+          stop();
+        }
+      });
+
+      playButton.addEventListener("click", () => update(input.value));
+      stopButton.addEventListener("click", () => stop());
+    </script>
+  </body>
+</html>
