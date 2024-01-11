@@ -8,7 +8,7 @@ doughbat is a very minimal livecoding editor. Principles:
 
 You can use it here: <https://felixroos.github.io/doughbat/>
 
-doughbat is the spiritual successor to [doughbeat](https://raw.githubusercontent.com/felixroos/doughbeat>), using [AssemblyScript](https://www.assemblyscript.org/) instead of JavaAscript.
+doughbat is the spiritual successor to [doughbeat](https://raw.githubusercontent.com/felixroos/doughbeat>), using [AssemblyScript](https://www.assemblyscript.org/) instead of JavaScript.
 
 ## Usage
 
